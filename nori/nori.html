@@ -425,17 +425,27 @@ function mkUtter(text,lang){
   u.rate = lang==='en'?0.85:0.92; u.pitch=1.06; return u;
 }
 let _spkT=null;
-// iOS는 cancel() 직후 같은 콜스택에서 speak()하면 큐가 통째로 날아감 → 한 틱 늦추고 onend로 체이닝
+// 핵심: 말하는 중이 아니면 "제스처 콜스택 안에서 즉시" 발화한다(iOS·안드로이드 자동재생 잠금 해제).
+// 이미 말하는 중일 때만 cancel()+한 틱 지연 → iOS 큐 보호 & 불필요한 cancel로 인한 안드로이드 음성 끊김 방지.
 function speakSeq(items){
   if(muted||!('speechSynthesis'in window)) return;
-  try{ speechSynthesis.cancel(); }catch(e){}
   clearTimeout(_spkT);
   const list=items.slice();
-  _spkT=setTimeout(function run(){
+  function run(){
     const it=list.shift(); if(!it) return;
-    try{ const u=mkUtter(it.text,it.lang); u.onend=()=>{ if(list.length) run(); }; speechSynthesis.speak(u); }
-    catch(e){}
-  },60);
+    try{
+      const u=mkUtter(it.text,it.lang);
+      u.onend=()=>{ if(list.length) run(); };
+      u.onerror=()=>{ if(list.length) run(); }; // 안드로이드 onend 누락 대비
+      speechSynthesis.speak(u);
+    }catch(e){}
+  }
+  if(speechSynthesis.speaking||speechSynthesis.pending){
+    try{ speechSynthesis.cancel(); }catch(e){}
+    _spkT=setTimeout(run,80);
+  }else{
+    run(); // 동기 호출 → 사용자 제스처 활성 유지
+  }
 }
 function speak(text,lang){ speakSeq([{text,lang:lang||'ko'}]); }
 // iOS는 첫 speak()가 "사용자 제스처 안에서 동기적으로" 호출돼야 음성 엔진이 풀린다.
