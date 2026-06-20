@@ -1,0 +1,9 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# 에디터/임시
+*.swp
+*~
+.idea/
+.vscode/

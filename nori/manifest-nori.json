@@ -1,0 +1,16 @@
+{
+  "name": "빨강이 똑똑 놀이터",
+  "short_name": "똑똑 놀이터",
+  "description": "한글·숫자·영어를 빨강이와 배우는 공부놀이",
+  "start_url": "./nori.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#b71c2b",
+  "theme_color": "#b71c2b",
+  "icons": [
+    { "src": "icon-nori-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-nori-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-nori-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

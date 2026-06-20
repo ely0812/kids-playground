@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b3aa8"/>
+      <stop offset="1" stop-color="#0d1142"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+
+  <!-- 안드로이드 마스크 세이프존(중앙 80%) 안에 들어가도록 축소 배치 -->
+  <g transform="translate(56.32,56.32) scale(0.78)">
+    <path d="M 190 276 L 324.7 210.8 A 150 150 0 1 0 324.7 341.2 Z" fill="#ffe14d"/>
+    <circle cx="215" cy="170" r="20" fill="#27243a"/>
+
+    <circle cx="385" cy="276" r="16" fill="#ffd166"/>
+    <circle cx="440" cy="276" r="16" fill="#ffd166"/>
+
+    <path d="M 322 142 A 68 68 0 0 1 458 142 L 458 196
+             Q 435.3 214 412.7 196 Q 390 214 367.3 196 Q 344.7 214 322 196 Z" fill="#ff8fb1"/>
+    <circle cx="368" cy="132" r="17" fill="#ffffff"/>
+    <circle cx="414" cy="132" r="17" fill="#ffffff"/>
+    <circle cx="372" cy="136" r="8" fill="#2d3561"/>
+    <circle cx="418" cy="136" r="8" fill="#2d3561"/>
+    <circle cx="352" cy="162" r="8" fill="#ff6b9a" opacity="0.45"/>
+    <circle cx="430" cy="162" r="8" fill="#ff6b9a" opacity="0.45"/>
+    <path d="M 380 165 Q 391 174 402 165" stroke="#2d3561" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -1,0 +1,15 @@
+{
+  "name": "꼬마 팩맨",
+  "short_name": "꼬마 팩맨",
+  "description": "아빠가 만든 귀여운 팩맨 게임",
+  "start_url": "./pacman.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "background_color": "#0d1142",
+  "theme_color": "#0d1142",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

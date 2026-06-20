@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#b71c2b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="현준이 놀이터">
+<link rel="apple-touch-icon" href="nori/icon-nori-180.png">
+<link rel="icon" type="image/png" href="nori/icon-nori-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<title>현준이 놀이터 — 아빠가 만든 것들</title>
+<style>
+  *{ margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; }
+  body{
+    font-family:'Jua','Apple SD Gothic Neo','Malgun Gothic',sans-serif; color:#fff;
+    position:fixed; inset:0; width:100%; overflow:hidden; touch-action:manipulation;
+    user-select:none; -webkit-user-select:none;
+    background:radial-gradient(circle at 50% 0%, #ff7a85, #b71c2b 75%);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:clamp(16px,3.4vh,30px);
+    padding:calc(14px + env(safe-area-inset-top)) 16px calc(14px + env(safe-area-inset-bottom));
+    text-align:center;
+  }
+  .bbang{ width:clamp(96px,17vh,160px); height:auto; filter:drop-shadow(0 6px 0 rgba(0,0,0,.18));
+    animation:bob 1.6s ease-in-out infinite; }
+  @keyframes bob{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-9px) } }
+  h1{ font-size:clamp(24px,4.6vh,40px); text-shadow:0 3px 0 rgba(0,0,0,.22); }
+  .hi{ font-size:clamp(17px,2.8vh,24px); opacity:.95; margin-top:-6px; }
+  .menu{ display:flex; flex-wrap:wrap; justify-content:center; gap:clamp(14px,2.6vh,22px); width:100%; max-width:520px; }
+  .card{
+    text-decoration:none; color:#fff; border:none; cursor:pointer;
+    width:clamp(140px,42vw,220px); aspect-ratio:1/1; border-radius:30px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+    font-size:clamp(20px,3.4vh,30px); box-shadow:0 8px 0 rgba(0,0,0,.22); transition:transform .08s;
+  }
+  .card .em{ font-size:clamp(54px,11vh,96px); line-height:1; }
+  .card:active{ transform:translateY(5px); box-shadow:0 3px 0 rgba(0,0,0,.22); }
+  .game{ background:linear-gradient(#ffd166,#f0a93c); color:#5a3b00; }
+  .study{ background:linear-gradient(#ff6b6b,#e23b3b); }
+  footer{ font-size:clamp(12px,1.9vh,15px); opacity:.8; }
+</style>
+</head>
+<body>
+  <div id="bbang"></div>
+  <h1>현준이 놀이터</h1>
+  <div class="hi">뭐 하고 놀까?</div>
+  <div class="menu">
+    <a class="card game" href="./pacman/"><span class="em">🟡</span>팩맨 게임</a>
+    <a class="card study" href="./nori/"><span class="em">📚</span>똑똑 놀이터</a>
+  </div>
+  <footer>사랑하는 현준이를 위해, 아빠가 ❤️ 담아 만들었어요</footer>
+
+<script>
+  document.getElementById('bbang').innerHTML =
+   `<svg class="bbang" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+     <path d="M10 56 A40 40 0 0 1 90 56 L90 88 Q82.5 80 75 88 Q67.5 96 60 88 Q52.5 80 45 88 Q37.5 96 30 88 Q22.5 80 15 88 Q12 84 10 88 Z" fill="#ff4d57"/>
+     <circle cx="38" cy="50" r="11.5" fill="#fff"/><circle cx="62" cy="50" r="11.5" fill="#fff"/>
+     <circle cx="40.5" cy="52" r="5.2" fill="#2d2350"/><circle cx="64.5" cy="52" r="5.2" fill="#2d2350"/>
+     <circle cx="38.8" cy="50.2" r="1.7" fill="#fff"/><circle cx="62.8" cy="50.2" r="1.7" fill="#fff"/>
+     <circle cx="25" cy="63" r="6" fill="#ff9aa9" opacity="0.65"/><circle cx="75" cy="63" r="6" fill="#ff9aa9" opacity="0.65"/>
+     <path d="M43 65 Q50 71 57 65" stroke="#2d2350" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+   </svg>`;
+  // 루트 SW: 옛 통합앱(kidpac) 찌꺼기를 정리. 각 앱은 자기 폴더(/pacman/, /nori/) SW가 담당.
+  if('serviceWorker' in navigator && (location.protocol==='https:'||['localhost','127.0.0.1'].includes(location.hostname))){
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  }
+</script>
+</body>
+</html>
