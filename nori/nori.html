@@ -835,7 +835,7 @@ try{ history.pushState({t:1},''); }catch(e){}
 addEventListener('popstate',()=>{ try{ history.pushState({t:1},''); }catch(e){} if(view!=='home') goBack(); });
 
 /* ===== 소리 진단 (⭐ 별 점수를 5번 톡톡 누르면 열림) ===== */
-const APP_VER='v7';
+const APP_VER='v8';
 function diagRefresh(){
   const vs=('speechSynthesis'in window)?speechSynthesis.getVoices():[];
   document.getElementById('diagInfo').textContent =
@@ -858,17 +858,21 @@ document.getElementById('diagTts').onclick=()=>{
   ensureAudio();
   const r=document.getElementById('diagTtsR');
   if(!('speechSynthesis'in window)){ r.textContent='❌ 이 브라우저는 음성(TTS) 미지원'; return; }
-  loadVoices(); r.textContent='… 말하는 중?';
+  loadVoices();
+  const vs=speechSynthesis.getVoices();
+  const ko=vs.filter(v=>/^ko/i.test(v.lang));
+  const head='목소리 '+vs.length+'개 · 한국어['+(ko.length?ko.map(v=>v.name).join('/'):'없음❌')+']\n';
+  r.textContent=head+'테스트 중…';
   try{
-    speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance('안녕, 현준아! 소리가 잘 들리니?');
-    u.lang='ko-KR'; if(koVoice) u.voice=koVoice;
-    u.onstart=()=>{ r.textContent='✅ 말하기 시작됨 — 목소리가 들렸나요?'; };
-    u.onend=()=>{ r.textContent='✅ 말하기 끝남 (시작·종료 정상)'; };
-    u.onerror=(e)=>{ r.textContent='❌ 음성 에러: '+(e.error||'unknown')+' — 한국어 TTS 미설치/비활성 의심'; };
+    // cancel() 없이 바로 발화 (안드로이드 cancel-직후-speak 죽는 버그 회피)
+    const u=new SpeechSynthesisUtterance('안녕 현준아');
+    u.lang='ko-KR'; if(ko[0]) u.voice=ko[0];
+    u.onstart=()=>{ r.textContent=head+'✅ 시작됨 — 목소리 들리나요?'; };
+    u.onend=()=>{ r.textContent=head+'✅ 시작·종료 정상 — 들렸나요?'; };
+    u.onerror=(e)=>{ r.textContent=head+'❌ 에러코드 ['+(e.error||'unknown')+']'; };
     speechSynthesis.speak(u);
-    setTimeout(()=>{ if(r.textContent==='… 말하는 중?') r.textContent='⚠️ 2초 내 시작 안 됨 — TTS 엔진 멈춤/미설치 의심'; },2000);
-  }catch(e){ r.textContent='에러: '+e; }
+    setTimeout(()=>{ if(/테스트 중…$/.test(r.textContent)) r.textContent=head+'⚠️ 무응답 (onstart·onerror 둘 다 안 옴)'; },2500);
+  }catch(e){ r.textContent=head+'예외: '+e; }
 };
 (function(){ let n=0,t=0; const pill=document.getElementById('starCount').parentElement;
   pill.style.cursor='pointer';
