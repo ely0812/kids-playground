@@ -505,12 +505,14 @@ function unlockFriend(f){
 
 /* ===== 화면 전환 ===== */
 let view='home', curSubject=null, findTimer=null;
-// 앱 처음 들어와 첫 터치 시 빨강이가 이름 부르며 인사(자동재생 정책상 첫 제스처 필요).
-let greeted=false, _greetGuard=false;
-function homeGreet(){
-  if(greeted||muted||view!=='home') return;
-  greeted=true; _greetGuard=true; // 같은 첫 터치가 과목/친구로 이어지면 그 안내는 한 번 생략(인사 안 잘리게)
+// 자동재생 정책상 첫 터치 전엔 발화 불가. 첫 터치(pointerdown)는 안드로이드에서 너무 일러
+// 음성이 삼켜지므로, 첫 활동(과목/친구) 진입 click 때 빨강이가 이름 부르며 인사한다(소리 확실히 나는 지점).
+let greeted=false;
+function greetOnce(){
+  if(greeted||muted) return false;
+  greeted=true; loadVoices();
   speak(`${vocative()}, 안녕! 뭐 하고 놀까?`);
+  return true;
 }
 const BASE_RED='#ff4d57';
 const GLYPHS={hangul:'#c1121f', num:'#1d4ed8', abc:'#15803d'};
@@ -541,8 +543,7 @@ function openSubject(s){
     b.onclick=()=>{ ensureAudio(); sfx.pop(); a.run(); };
     grid.appendChild(b);
   });
-  if(_greetGuard){ _greetGuard=false; } // 방금 첫 인사가 났으면 과목 안내 생략
-  else speak(`${SUBJECTS[s].title}! 뭐 하고 놀까?`);
+  if(!greetOnce()) speak(`${SUBJECTS[s].title}! 뭐 하고 놀까?`); // 첫 진입이면 이름 인사, 이후엔 과목 안내
 }
 function openFriends(){
   show('friends'); document.documentElement.style.setProperty('--red',BASE_RED);
@@ -557,8 +558,7 @@ function openFriends(){
       card.innerHTML=`<div class="lockbox">❓</div><div class="need">⭐${f.stars}</div>`; }
     grid.appendChild(card);
   });
-  if(_greetGuard){ _greetGuard=false; }
-  else speak('친구들이야! 별을 모으면 새 친구가 와요.');
+  if(!greetOnce()) speak('친구들이야! 별을 모으면 새 친구가 와요.');
 }
 function goBack(){
   if(view==='learn'||view==='build'||view==='buildjong'||view==='find') openSubject(curSubject);
@@ -821,9 +821,9 @@ document.getElementById('muteBtn').onclick=()=>{
 };
 
 /* ===== 모바일 단단하게 ===== */
-addEventListener('pointerdown',()=>{ ensureAudio(); primeSpeech(); homeGreet(); },{passive:true});
-addEventListener('pointerup',()=>{ ensureAudio(); primeSpeech(); homeGreet(); },{passive:true});
-addEventListener('touchend',()=>{ ensureAudio(); primeSpeech(); homeGreet(); },{passive:true}); // iOS 음성 잠금해제는 touchend가 가장 확실
+addEventListener('pointerdown',()=>{ ensureAudio(); primeSpeech(); },{passive:true});
+addEventListener('pointerup',()=>{ ensureAudio(); primeSpeech(); },{passive:true});
+addEventListener('touchend',()=>{ ensureAudio(); primeSpeech(); },{passive:true}); // iOS 음성 잠금해제는 touchend가 가장 확실
 document.addEventListener('gesturestart',e=>e.preventDefault());
 document.addEventListener('gesturechange',e=>e.preventDefault());
 document.addEventListener('visibilitychange',()=>{
@@ -835,7 +835,7 @@ try{ history.pushState({t:1},''); }catch(e){}
 addEventListener('popstate',()=>{ try{ history.pushState({t:1},''); }catch(e){} if(view!=='home') goBack(); });
 
 /* ===== 소리 진단 (⭐ 별 점수를 5번 톡톡 누르면 열림) ===== */
-const APP_VER='v8';
+const APP_VER='v9';
 function diagRefresh(){
   const vs=('speechSynthesis'in window)?speechSynthesis.getVoices():[];
   document.getElementById('diagInfo').textContent =
