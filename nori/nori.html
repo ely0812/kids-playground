@@ -481,6 +481,13 @@ function unlockFriend(f){
 
 /* ===== 화면 전환 ===== */
 let view='home', curSubject=null, findTimer=null;
+// 앱 처음 들어와 첫 터치 시 빨강이가 이름 부르며 인사(자동재생 정책상 첫 제스처 필요).
+let greeted=false, _greetGuard=false;
+function homeGreet(){
+  if(greeted||muted||view!=='home') return;
+  greeted=true; _greetGuard=true; // 같은 첫 터치가 과목/친구로 이어지면 그 안내는 한 번 생략(인사 안 잘리게)
+  speak(`${vocative()}, 안녕! 뭐 하고 놀까?`);
+}
 const BASE_RED='#ff4d57';
 const GLYPHS={hangul:'#c1121f', num:'#1d4ed8', abc:'#15803d'};
 function show(id){
@@ -510,7 +517,8 @@ function openSubject(s){
     b.onclick=()=>{ ensureAudio(); sfx.pop(); a.run(); };
     grid.appendChild(b);
   });
-  speak(`${SUBJECTS[s].title}! 뭐 하고 놀까?`);
+  if(_greetGuard){ _greetGuard=false; } // 방금 첫 인사가 났으면 과목 안내 생략
+  else speak(`${SUBJECTS[s].title}! 뭐 하고 놀까?`);
 }
 function openFriends(){
   show('friends'); document.documentElement.style.setProperty('--red',BASE_RED);
@@ -525,7 +533,8 @@ function openFriends(){
       card.innerHTML=`<div class="lockbox">❓</div><div class="need">⭐${f.stars}</div>`; }
     grid.appendChild(card);
   });
-  speak('친구들이야! 별을 모으면 새 친구가 와요.');
+  if(_greetGuard){ _greetGuard=false; }
+  else speak('친구들이야! 별을 모으면 새 친구가 와요.');
 }
 function goBack(){
   if(view==='learn'||view==='build'||view==='buildjong'||view==='find') openSubject(curSubject);
@@ -788,9 +797,9 @@ document.getElementById('muteBtn').onclick=()=>{
 };
 
 /* ===== 모바일 단단하게 ===== */
-addEventListener('pointerdown',()=>{ ensureAudio(); primeSpeech(); },{passive:true});
-addEventListener('pointerup',()=>{ ensureAudio(); primeSpeech(); },{passive:true});
-addEventListener('touchend',()=>{ ensureAudio(); primeSpeech(); },{passive:true}); // iOS 음성 잠금해제는 touchend가 가장 확실
+addEventListener('pointerdown',()=>{ ensureAudio(); primeSpeech(); homeGreet(); },{passive:true});
+addEventListener('pointerup',()=>{ ensureAudio(); primeSpeech(); homeGreet(); },{passive:true});
+addEventListener('touchend',()=>{ ensureAudio(); primeSpeech(); homeGreet(); },{passive:true}); // iOS 음성 잠금해제는 touchend가 가장 확실
 document.addEventListener('gesturestart',e=>e.preventDefault());
 document.addEventListener('gesturechange',e=>e.preventDefault());
 document.addEventListener('visibilitychange',()=>{

@@ -1,6 +1,6 @@
 // 빨강이 똑똑 놀이터 오프라인 캐시 (홈 화면 앱용)
 // 앱을 고쳐서 다시 올릴 때마다 아래 버전 숫자를 하나씩 올려주세요 (v1 → v2 ...)
-const CACHE = 'nori-v5';
+const CACHE = 'nori-v6';
 const ASSETS = [
   './',
   './index.html',
