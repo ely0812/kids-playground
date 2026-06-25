@@ -152,6 +152,19 @@
   #cheer .txt{ font-size:clamp(26px,4.6vh,42px); color:#fff; text-shadow:0 3px 0 rgba(0,0,0,.25);
     background:rgba(0,0,0,.25); padding:6px 18px; border-radius:999px; }
   canvas#fx{ position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:15; }
+  /* 소리 진단 */
+  #diag{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:30;
+    background:rgba(0,0,0,.6); padding:18px; }
+  #diag.on{ display:flex; }
+  .diagbox{ background:#fff; color:#222; border-radius:18px; padding:16px 18px; width:min(92vw,430px);
+    max-height:92vh; overflow:auto; font-size:16px; line-height:1.5; text-align:left; }
+  .diagbox h3{ margin-bottom:10px; font-size:20px; }
+  .diagbox button{ font-family:inherit; display:block; width:100%; margin:10px 0 2px; padding:13px;
+    border:none; border-radius:12px; background:#3b82f6; color:#fff; font-size:17px; cursor:pointer; }
+  .diagbox #diagClose{ background:#999; }
+  .diagbox .dr{ font-size:14px; color:#333; min-height:1.3em; word-break:break-all; }
+  #diagInfo{ background:#f3f4f6; border-radius:10px; padding:10px; font-size:14px; white-space:pre-line; color:#111; }
+  #verStamp{ font-size:11px; opacity:.4; color:#fff; }
 </style>
 </head>
 <body>
@@ -173,6 +186,7 @@
       <button class="bigcard bc-num" data-subject="num"><span class="em">1</span>숫자 나라</button>
       <button class="bigcard bc-abc" data-subject="abc"><span class="em">A</span>ABC 나라</button>
     </div>
+    <div id="verStamp"></div>
   </section>
 
   <section class="screen" id="subject">
@@ -235,6 +249,16 @@
 
 <div id="cheer"><div class="big" id="cheerBig">🎉</div><div class="txt" id="cheerTxt"></div></div>
 <canvas id="fx"></canvas>
+
+<div id="diag"><div class="diagbox">
+  <h3>🔧 소리 진단</h3>
+  <div id="diagInfo"></div>
+  <button id="diagSfx">🔊 효과음 테스트 (삑 소리)</button>
+  <div id="diagSfxR" class="dr"></div>
+  <button id="diagTts">🗣️ 목소리 테스트 (안녕 현준아)</button>
+  <div id="diagTtsR" class="dr"></div>
+  <button id="diagClose">닫기</button>
+</div></div>
 
 <script>
 'use strict';
@@ -810,7 +834,49 @@ document.addEventListener('visibilitychange',()=>{
 try{ history.pushState({t:1},''); }catch(e){}
 addEventListener('popstate',()=>{ try{ history.pushState({t:1},''); }catch(e){} if(view!=='home') goBack(); });
 
+/* ===== 소리 진단 (⭐ 별 점수를 5번 톡톡 누르면 열림) ===== */
+const APP_VER='v7';
+function diagRefresh(){
+  const vs=('speechSynthesis'in window)?speechSynthesis.getVoices():[];
+  document.getElementById('diagInfo').textContent =
+    `앱 버전: ${APP_VER}\n`+
+    `오디오(WebAudio): ${AC?AC.state:'아직 안 켜짐'}\n`+
+    `한국어 목소리: ${koVoice?koVoice.name:'없음 ❌ (한국어 TTS 미설치 의심)'}\n`+
+    `전체 목소리 수: ${vs.length}개\n`+
+    `음소거: ${muted?'켜짐 🔇':'꺼짐 🔊'}`;
+}
+function openDiag(){ ensureAudio(); diagRefresh(); document.getElementById('diag').classList.add('on'); }
+document.getElementById('diagClose').onclick=()=>document.getElementById('diag').classList.remove('on');
+document.getElementById('diagSfx').onclick=()=>{
+  ensureAudio();
+  const r=document.getElementById('diagSfxR');
+  try{ sfx.right(); r.textContent=`▶ 효과음 재생함 — 소리가 들렸나요? · 오디오:${AC?AC.state:'?'}`; }
+  catch(e){ r.textContent='에러: '+e; }
+  diagRefresh();
+};
+document.getElementById('diagTts').onclick=()=>{
+  ensureAudio();
+  const r=document.getElementById('diagTtsR');
+  if(!('speechSynthesis'in window)){ r.textContent='❌ 이 브라우저는 음성(TTS) 미지원'; return; }
+  loadVoices(); r.textContent='… 말하는 중?';
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance('안녕, 현준아! 소리가 잘 들리니?');
+    u.lang='ko-KR'; if(koVoice) u.voice=koVoice;
+    u.onstart=()=>{ r.textContent='✅ 말하기 시작됨 — 목소리가 들렸나요?'; };
+    u.onend=()=>{ r.textContent='✅ 말하기 끝남 (시작·종료 정상)'; };
+    u.onerror=(e)=>{ r.textContent='❌ 음성 에러: '+(e.error||'unknown')+' — 한국어 TTS 미설치/비활성 의심'; };
+    speechSynthesis.speak(u);
+    setTimeout(()=>{ if(r.textContent==='… 말하는 중?') r.textContent='⚠️ 2초 내 시작 안 됨 — TTS 엔진 멈춤/미설치 의심'; },2000);
+  }catch(e){ r.textContent='에러: '+e; }
+};
+(function(){ let n=0,t=0; const pill=document.getElementById('starCount').parentElement;
+  pill.style.cursor='pointer';
+  pill.addEventListener('click',()=>{ const now=performance.now(); if(now-t>2500) n=0; t=now; if(++n>=5){ n=0; openDiag(); } });
+})();
+
 /* ===== 시작 ===== */
+document.getElementById('verStamp').textContent=APP_VER;
 renderStars();
 document.getElementById('homeHi').textContent = KID_NAME ? `${vocative()}, 안녕! 뭐 하고 놀까?` : '안녕! 뭐 하고 놀까?';
 if('serviceWorker' in navigator && (location.protocol==='https:'||['localhost','127.0.0.1'].includes(location.hostname))){
