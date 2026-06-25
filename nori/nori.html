@@ -421,10 +421,12 @@ function loadVoices(){
 if('speechSynthesis' in window){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; }
 function mkUtter(text,lang){
   const u=new SpeechSynthesisUtterance(text);
-  u.lang = lang==='en'?'en-US':'ko-KR'; u.voice = lang==='en'?enVoice:koVoice;
+  u.lang = lang==='en'?'en-US':'ko-KR';
+  if((lang==='en'?enVoice:koVoice)==null) loadVoices(); // 늦게 로드된 보이스 즉석 반영(안드로이드 비동기)
+  u.voice = lang==='en'?enVoice:koVoice;
   u.rate = lang==='en'?0.85:0.92; u.pitch=1.06; return u;
 }
-let _spkT=null;
+let _spkT=null, _firstReal=true;
 // 핵심: 말하는 중이 아니면 "제스처 콜스택 안에서 즉시" 발화한다(iOS·안드로이드 자동재생 잠금 해제).
 // 이미 말하는 중일 때만 cancel()+한 틱 지연 → iOS 큐 보호 & 불필요한 cancel로 인한 안드로이드 음성 끊김 방지.
 function speakSeq(items){
@@ -440,10 +442,13 @@ function speakSeq(items){
       speechSynthesis.speak(u);
     }catch(e){}
   }
-  if(speechSynthesis.speaking||speechSynthesis.pending){
+  // 세션 첫 실제 발화는 무조건 동기 발화. primeSpeech 무음발화가 남긴 pending 때문에
+  // 첫 발화가 cancel+지연 경로로 새서 안드로이드에서 무음/앞잘림 되던 버그 방지.
+  if(!_firstReal && (speechSynthesis.speaking||speechSynthesis.pending)){
     try{ speechSynthesis.cancel(); }catch(e){}
-    _spkT=setTimeout(run,80);
+    _spkT=setTimeout(run,120); // 안드로이드가 cancel 처리할 여유
   }else{
+    _firstReal=false;
     run(); // 동기 호출 → 사용자 제스처 활성 유지
   }
 }
@@ -557,13 +562,13 @@ function renderLearn(){
 function repeatLearn(){
   ensureAudio(); sfx.pop();
   if(curSubject==='num'){
-    const n=learnData[learnIdx]; const seq=[];
-    for(let i=1;i<=n;i++) seq.push({text:NATIVE[i],lang:'ko'});
-    seq.push({text:`${NATIVE[n]}! 숫자 ${SINO[n]}.`,lang:'ko'});
-    speakSeq(seq);
+    const n=learnData[learnIdx];
+    const counts=[]; for(let i=1;i<=n;i++) counts.push(NATIVE[i]);
+    // 한 문장으로(쉼표=쉼) → 안드로이드 onend 체인 끊김으로 '세다 마는' 현상 방지
+    speak(`${counts.join(', ')}. ${NATIVE[n]}! 숫자 ${SINO[n]}.`);
   }else if(curSubject==='abc'){
     const it=learnData[learnIdx];
-    speakSeq([{text:`${it.ch}.`,lang:'en'},{text:`${it.ch} for ${it.word}.`,lang:'en'}]);
+    speak(`${it.ch}. ${it.ch} for ${it.word}.`, 'en'); // 두 문장 → 한 발화로 합쳐 체인 의존 제거
   }else{
     const it=learnData[learnIdx];
     speak(it.word && it.word!==it.name ? `${it.name}. ${it.word}.` : `${it.name}.`);
@@ -801,6 +806,9 @@ renderStars();
 document.getElementById('homeHi').textContent = KID_NAME ? `${vocative()}, 안녕! 뭐 하고 놀까?` : '안녕! 뭐 하고 놀까?';
 if('serviceWorker' in navigator && (location.protocol==='https:'||['localhost','127.0.0.1'].includes(location.hostname))){
   navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  // 새 버전 배포 시 옛 코드 고착 방지: 새 SW가 제어를 잡으면 한 번만 새로고침
+  let _swReloaded=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(_swReloaded)return; _swReloaded=true; location.reload(); });
 }
 </script>
 </body>
